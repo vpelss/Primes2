@@ -46,16 +46,20 @@ onmessage = function(event) {
 	postMessage('msg:Number of primes: ' + primeCount + '</br>');
 	postMessage('done');
 };
- 
+
+var prime = [];
+var notPrime = [];
+//notPrime[66] = true;
+//notPrime[909863373] = true;
+
 function GetPrimes(input) {
 primeCount = 0;
  buffer = '';
 	var primeLimit = input.upTo;
 	bufferSize = input.bufferSize;
 	primeCount = 1;
-
-let prime = {};
-let notPrime = {};
+prime = [];
+notPrime = [];
 prime[2] = 2; //running sum
 AddToBuffer(2);
 let lastPrimeFound = 2;
@@ -64,15 +68,31 @@ let nextStop;
 	while (nextStop != primeLimit) {
   //sum primes to 2 x last prime found to build a list of notPrime
   nextStop = lastPrimeFound * 2; //largest prime x 2 will allow all smaller primes to find not primes up to this number
-  if(nextStop > primeLimit){
+  if(nextStop > primeLimit){ //cap searches to our limit
    nextStop = primeLimit;
   }
-   for (const key in prime) {
+  
+  if(nextStop > 100000000){
+   h= 9;
+  }
+   for (const key of prime) {
+   //for (const key in prime) {
    let currentPrime = parseInt(key);
    sum = prime[currentPrime];
    while (sum < nextStop) { 
     sum = sum + currentPrime;
-    notPrime[sum] = 1;
+    if(sum > nextStop){
+     break;
+    }
+    if(sum > 100000000){
+     break;
+    }
+    try{
+    notPrime[sum] = true;
+    }
+    catch(errr){
+     yy = sum;
+    }
    }
    prime[currentPrime] = sum; //update current sum
   }
@@ -83,11 +103,6 @@ let nextStop;
   for (let checkNumber = lastPrimeFound + 1; checkNumber <= nextStop; checkNumber++) {
    if (! notPrime[checkNumber]) { //found a prime
     prime[checkNumber] = checkNumber; //starting sum
-    //if(checkNumber > primeLimit) { //we are 100% done
-     //prime = {};
-     //notPrime = {};
-     //return;
-    //}
     AddToBuffer(checkNumber);
     lastPrimeFound = checkNumber;
     wasPrimeFoundInRange = true;
@@ -95,18 +110,19 @@ let nextStop;
     primeCount++;
    }
   }
-  postMessage( `msg:Found ${lastPrimeCount} primes.</br>`);
+  postMessage( `msg:Found ${lastPrimeCount} more primes. Last prime found ${lastPrimeFound}</br>`);
   if( ! wasPrimeFoundInRange ){
    lastPrimeFound = lastPrimeFound * 2;
+   postMessage("msg: One range missed.</br>");
   }
 	}
- prime = {};
- notPrime = {};
- return; //should not reach this point
+ prime = [];
+ notPrime = [];
+ return; 
 }
 
 function AddToBuffer(num) {
-	buffer += num + ' ';
+	//buffer += num + ' ';
 	if (buffer.length > bufferSize) {
 		postMessage(buffer);
 		buffer = '';
