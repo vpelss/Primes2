@@ -26,9 +26,6 @@
 
 <form action="#">
 
-  For fake primes, change this: <input id="fakePrime" type="text" value="2"> Primes are divisible by only one and itself. When you change this value it includes all multiple values less than this value in the output. Eg: 5 will alow all multiples of 4, 3, ans 2 in the output.
-  <br><br>
-
   Check for primes up to <input id="howMany" type="text" value="1,000,000"> (too many may crash your browser session. 100,000,000 is probably the limit)
   <br><br>
 
@@ -36,6 +33,10 @@
   <br><br>
   <input type="submit" value="Give me my primes" onclick="runForestRun();return false;">
   <br><br>
+
+Changing this value will no longer give you primes: <input id="fakePrime" type="text" value="2"> Primes are only divisible by one and itself. When you change this value it includes all multiple values less than this value in the output. Eg: 5 will alow all multiples of 4, 3, and 2 in the output.
+  <br><br>
+
 </form>
 <br>
 
