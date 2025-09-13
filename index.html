@@ -4,45 +4,49 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Primes2</title>
+  
+  
+  
+
+  <title>Prime Number Generator in JS Webworker</title>
+
     <link rel="canonical" href="https://codepen.io/vpelss/pen/qBxNEvr">
-</head>
-
-<body>
-  <!DOCTYPE html>
-<html>
-
-<head>
   <title>Primes JS webworker</title>
+  
+  
+  
+
+  
+  
+  
 </head>
 
 <body>
+  <p>Generates prime numbers using Eratosthenes' prime number sieve using js inline webworker.<br><a href="https://github.com/vpelss/primes" target="_blank">Code at Github</a> IE not supported.</p>
 
-  <p>Generates prime numbers using Eratosthenes' prime number sieve using js inline webworker.<br><a href='https://github.com/vpelss/primes' target='_blank'>Code at Github</a> IE not supported.</p>
+<form action="#">
 
-  <form action='#'>
-    
-    For fake primes, change this: <input id='fakePrime' type='text' value='2'> Primes are divisible by only one and itself. When you change this value it includes all multiple values less than this value in the output. Eg: 5 will alow all multiples of 4, 3, ans 2 in the output.
-    <br><br>
-    
-        Check for primes up to <input id='howMany' type='text' value='1,000,000'> (too many may crash your browser session. 100,000,000 is probably the limit)
-    <br><br>
-    
-    Buffer Size <input id='bufferSize' type='text' value='1,000,000'> (webworker transfer primes in batches of...)
-    <br><br>
-    <input type="submit" value='Give me my primes' onclick="runForestRun();return false;">
-    <br><br>
-  </form>
-  <br>
+  For fake primes, change this: <input id="fakePrime" type="text" value="2"> Primes are divisible by only one and itself. When you change this value it includes all multiple values less than this value in the output. Eg: 5 will alow all multiples of 4, 3, ans 2 in the output.
+  <br><br>
 
-  <p>Logger</p>
-  <div id="logger"></div>
-  </br>
-  <p>Primes</p>
-  <div id="primes" contenteditable="false"></div>
+  Check for primes up to <input id="howMany" type="text" value="1,000,000"> (too many may crash your browser session. 100,000,000 is probably the limit)
+  <br><br>
 
-  <script id="worker" type="javascript/worker">
-    onmessage = function(event) {
+  Buffer Size <input id="bufferSize" type="text" value="1,000,000"> (webworker transfer primes in batches of...)
+  <br><br>
+  <input type="submit" value="Give me my primes" onclick="runForestRun();return false;">
+  <br><br>
+</form>
+<br>
+
+<p>Logger</p>
+<div id="logger"></div>
+<br>
+<p>Primes</p>
+<div id="primes" contenteditable="false"></div>
+
+<script id="worker" type="javascript/worker">
+  onmessage = function(event) {
       var txt = event.data;
       var input = JSON.parse(txt);
       GetPrimes(input);
@@ -58,7 +62,7 @@
     function GetPrimes(input) {
       primeLimit = input.howMany;
       bufferSize = input.bufferSize;
-      let fakePrime = input.fakePrime;
+      let shouldBeTwo = input.fakePrime;
       var t0 = performance.now();
       var limitSqrt = Math.floor(Math.sqrt(primeLimit));
       var num;
@@ -70,7 +74,7 @@
       //we are actually generating a list of non primes by adding each number (up to Math.sqrt(primeLimit) ) repeatedly until we reach primeLimit.
       //all sums will not be prime
       var sum;
-      for (num = fakePrime ; num <= limitSqrt ; num++) {
+      for (num = shouldBeTwo ; num <= limitSqrt ; num++) {
         sum = num;
         //bufferIndex++;
         if (notPrime[num]) { //this number is not prime. an earlier factor was repeatedly summed to equal this number
@@ -128,51 +132,46 @@
       }
     }
   </script>
+  
+      <script id="rendered-js" >
+//inline worker
+  var blob = new Blob([
+    document.querySelector('#worker').textContent
+  ], {
+    type: "text/javascript"
+  });
+  var worker = new Worker(window.URL.createObjectURL(blob));
+  var t0;
+  //messages from webworker
+  worker.onmessage = function(event) {
+    if (event.data.startsWith("done")) { //webworker telling us it is done
+      document.getElementById('logger').innerHTML += "Done</br>";
+      var t1 = performance.now();
+      document.getElementById('logger').innerHTML += 'Total time taken: ' + (t1 - t0) / 1000 + '</br>';
+    }
+    if (event.data.startsWith("msg:")) { //just notifications from webworker
+      document.getElementById('logger').innerHTML += event.data.replace("msg:", "");
+    } else { //primes from webworker buffer
+      document.getElementById('primes').innerHTML += event.data + ' ';
+    }
+  };
 
-  <script>
-    //inline worker
-    var blob = new Blob([
-      document.querySelector('#worker').textContent
-    ], {
-      type: "text/javascript"
-    });
-    var worker = new Worker(window.URL.createObjectURL(blob));
-    var t0;
-    //messages from webworker
-    worker.onmessage = function(event) {
-      if (event.data.startsWith("done")) { //webworker telling us it is done
-        document.getElementById('logger').innerHTML += "Done</br>";
-        var t1 = performance.now();
-        document.getElementById('logger').innerHTML += 'Total time taken: ' + (t1 - t0) / 1000 + '</br>';
-      }
-      if (event.data.startsWith("msg:")) { //just notifications from webworker
-        document.getElementById('logger').innerHTML += event.data.replace("msg:", "");
-      } else { //primes from webworker buffer
-        document.getElementById('primes').innerHTML += event.data + ' ';
-      }
-    };
-
-    function runForestRun() {
-      t0 = performance.now();
-      document.getElementById('logger').innerHTML = '';
-      document.getElementById('primes').innerHTML = '';
-      let fakePrime = document.getElementById('fakePrime').value;
-      var howMany = document.getElementById('howMany').value.replace(/,/g, '');
-      var bufferSize = document.getElementById('bufferSize').value.replace(/,/g, '');
-      var jsonString = `{
+  function runForestRun() {
+    t0 = performance.now();
+    document.getElementById('logger').innerHTML = '';
+    document.getElementById('primes').innerHTML = '';
+    let fakePrime = document.getElementById('fakePrime').value;
+    var howMany = document.getElementById('howMany').value.replace(/,/g, '');
+    var bufferSize = document.getElementById('bufferSize').value.replace(/,/g, '');
+    var jsonString = `{
         "howMany" : ${howMany} ,
         "bufferSize" : ${bufferSize},
         "fakePrime" : ${fakePrime}
         }`;
-      worker.postMessage(jsonString);
-    }
-  </script>
+    worker.postMessage(jsonString);
+  }
+    </script>
 
-</body>
-
-</html>
-  
-  
   
 </body>
 
